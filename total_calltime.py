@@ -5,6 +5,7 @@ import arrow
 import statistics
 import os
 from dotenv import load_dotenv
+from typing_extensions import TypedDict
 
 load_dotenv()
 
@@ -14,7 +15,15 @@ CACHE_FILE = os.path.join('./cache', f'{CHANNEL_ID}.json')
 
 # print('channel id:', CHANNEL_ID, 'token:', DISCORD_TOKEN)
 
-all_messages: list[dict[str, Any]] = []
+class Call(TypedDict):
+    ended_timestamp: Optional[str]
+
+class Message(TypedDict):
+    id: str
+    timestamp: str
+    call: Call
+
+all_messages: list[Message] = []
 before: Optional[str] = None
 
 if os.path.exists(CACHE_FILE):
@@ -24,14 +33,14 @@ if os.path.exists(CACHE_FILE):
 while True:
     url = f"https://discord.com/api/v9/channels/{CHANNEL_ID}/messages?limit=100"
     if before: url += f"&before={before}"
-    res = requests.get(url, headers={'authorization': DISCORD_TOKEN}).json()
+    res: list[Message] = requests.get(url, headers={'authorization': DISCORD_TOKEN}).json()
     
     # check if has "message" property, if so it's an error
     if 'message' in res:
         raise Exception(res)
 
     # filter out messages that are already in the cache
-    res = [m for m in res if m['id'] not in [m['id'] for m in all_messages]]    
+    res = [m for m in res if m['id'] not in [m['id'] for m in all_messages]]
     
     all_messages.extend(res)
     
