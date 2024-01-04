@@ -1,7 +1,7 @@
 import json
 from typing import Any, Optional
 import requests
-import arrow
+import datetime
 import statistics
 import os
 from dotenv import load_dotenv
@@ -55,8 +55,8 @@ with open(CACHE_FILE, 'w') as f:
 call_messages = [m for m in all_messages if m.get('call')]
 
 # calculate total, longest and average call time
-call_times = [
-    (arrow.get(call_message['call']['ended_timestamp']) - arrow.get(call_message['timestamp'])).total_seconds()
+call_times: list[int] = [
+    (datetime.fromisoformat(call_message['call']['ended_timestamp']) - datetime.fromisoformat(call_message['timestamp'])).total_seconds()
     for call_message in call_messages
     if call_message['call']['ended_timestamp'] is not None
 ]
