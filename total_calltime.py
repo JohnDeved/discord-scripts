@@ -6,10 +6,19 @@ import statistics
 import os
 from dotenv import load_dotenv
 from typing_extensions import TypedDict
+import argparse
 
 load_dotenv()
 
-CHANNEL_ID = os.getenv('CHANNEL_ID', '')
+# Create the parser and add the arguments
+parser = argparse.ArgumentParser(description='Calculate total call time for a Discord channel')
+parser.add_argument('CHANNEL_ID', metavar='CHANNEL_ID', type=str, nargs='?', 
+                    default=os.getenv('CHANNEL_ID', ''),
+                    help='Channel ID to be processed')
+
+args = parser.parse_args()
+
+CHANNEL_ID: str = args.CHANNEL_ID
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN', '')
 CACHE_FILE = os.path.join('./cache', f'{CHANNEL_ID}.json')
 
