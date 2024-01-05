@@ -1,7 +1,8 @@
-import os, json, requests, datetime, statistics, argparse
+import os, json, requests, statistics, argparse
 from dotenv import load_dotenv
 from typing import Optional, Union
 from typing_extensions import TypedDict
+from datetime import datetime
 
 load_dotenv()
 
@@ -59,7 +60,7 @@ with open(CACHE_FILE, 'w') as f:
 call_messages = [m for m in all_messages if m.get('call')]
 
 # calculate total, longest and average call time
-call_times: list[int] = [
+call_times = [
     (datetime.fromisoformat(call_message['call']['ended_timestamp']) - datetime.fromisoformat(call_message['timestamp'])).total_seconds()
     for call_message in call_messages
     if call_message['call']['ended_timestamp'] is not None
