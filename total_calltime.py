@@ -1,29 +1,21 @@
-import json
-from typing import Any, Optional
-import requests
-import datetime
-import statistics
-import os
+import os, json, requests, datetime, statistics, argparse
 from dotenv import load_dotenv
+from typing import Optional, Union
 from typing_extensions import TypedDict
-import argparse
 
 load_dotenv()
 
 # Create the parser and add the arguments
-parser = argparse.ArgumentParser(description='Calculate total call time for a Discord channel')
-parser.add_argument('CHANNEL_ID', metavar='CHANNEL_ID', type=str, nargs='?', 
-                    default=os.getenv('CHANNEL_ID', ''),
-                    help='Channel ID to be processed')
-
+parser = argparse.ArgumentParser()
+parser.add_argument('CHANNEL_ID', type=str, nargs='?', default=os.getenv('CHANNEL_ID', ''))
 args = parser.parse_args()
 
-CHANNEL_ID: str = args.CHANNEL_ID
-DISCORD_TOKEN = os.getenv('DISCORD_TOKEN', '')
+CHANNEL_ID, DISCORD_TOKEN = args.CHANNEL_ID, os.getenv('DISCORD_TOKEN', '')
 CACHE_FILE = os.path.join('./cache', f'{CHANNEL_ID}.json')
 
 # print('channel id:', CHANNEL_ID, 'token:', DISCORD_TOKEN)
 
+# type definitions
 class Call(TypedDict):
     ended_timestamp: Optional[str]
 
@@ -32,6 +24,9 @@ class Message(TypedDict):
     timestamp: str
     call: Call
 
+class DCError(TypedDict):
+    message: str
+    
 all_messages: list[Message] = []
 before: Optional[str] = None
 
@@ -42,7 +37,7 @@ if os.path.exists(CACHE_FILE):
 while True:
     url = f"https://discord.com/api/v9/channels/{CHANNEL_ID}/messages?limit=100"
     if before: url += f"&before={before}"
-    res: list[Message] = requests.get(url, headers={'authorization': DISCORD_TOKEN}).json()
+    res: Union[list[Message], DCError] = requests.get(url, headers={'authorization': DISCORD_TOKEN}).json()
     
     # check if has "message" property, if so it's an error
     if 'message' in res:
